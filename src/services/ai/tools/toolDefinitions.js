@@ -21,12 +21,18 @@ const tools = [
                 },
                 "preferred_time": {
                     "type": "string",
-                    "description": "Customer's preferred appointment time (ISO 8601 format)"
+                    "description": "Customer's preferred appointment time (ISO 8601 format) knowing that the current time is " + new Date().toISOString()
                 },
                 "store_location": {
                     "type": "string",
-                    "description": "Store location identifier"
-                }
+                    "description": "Store location name or address or city or store id any thing that can be used to identify the store"
+                },
+                "details": {
+                    "type": "string",
+                    "description": "Details about customer's appointment like what they want to be done, any other information that is relevant"
+                },
+
+
             },
             "required": ["customer_phone", "phone_model", "issue", "preferred_time"]
         }
