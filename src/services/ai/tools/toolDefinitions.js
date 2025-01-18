@@ -34,7 +34,7 @@ const tools = [
 
 
             },
-            "required": ["customer_phone", "phone_model", "issue", "preferred_time"]
+            "required": ["customer_phone", "phone_model", "issue", "preferred_time", "store_location", "details"]
         }
     },
     {

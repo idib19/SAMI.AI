@@ -33,53 +33,66 @@ class ToolHandler {
         switch (toolName) {
             case "scheduleAppointment":
                 try {
+                    logger.info('Starting scheduleAppointment process', { toolInput });
 
                     // Validate that the preferred time is not in the past
                     const preferredTime = new Date(toolInput.preferred_time);
                     const currentTime = new Date();
+                    logger.info('Time validation', { 
+                        preferredTime: preferredTime.toISOString(), 
+                        currentTime: currentTime.toISOString() 
+                    });
 
                     if (preferredTime < currentTime) {
+                        logger.warn('Appointment time is in the past', { preferredTime });
                         return {
                             success: false,
                             error: "Cannot schedule appointments in the past. Please provide a future date and time."
                         };
                     }
-                    
-                    // Simulate appointment scheduling
-                    // this should contain : 
-                    // - appointment details
-                    // - appointment location
-                    // - appointment time
-                    // - appointment status
-                    // - appointment created_at (should be the current date)
+
                     const appointment = {
-                        details: toolInput.details,
-                        location: toolInput.location,
-                        time: toolInput.preferred_time,
-                        status: "pending"
+                        details: {
+                            raw: toolInput.details,
+                            json: {
+                                type: "doc",
+                                content: [{
+                                    type: "paragraph",
+                                    content: [{
+                                        type: "text",
+                                        text: toolInput.details
+                                    }]
+                                }]
+                            }
+                        },
+                        location: toolInput.location || toolInput.store_location,
+                        time: preferredTime.toISOString(),
+                        status: "pending",
+                        customer_phone: toolInput.customer_phone,
+                        phone_model: toolInput.phone_model,
+                        issue: toolInput.issue
                     };
-
-                    // In a real implementation, you would:
-                    // 1. Check actual store availability - skiped for now
-                    // 2. Reserve the time slot
+                    
+                    logger.info('Attempting to create appointment', { appointment });
                     const appointmentRecord = await createAppointment(appointment);
-                    // 3. Create the appointment in your system
-                    // 4. Send confirmation emails/SMS
-                    console.log("appointmentRecord", appointmentRecord);
-
+                    logger.info('Appointment created successfully', { appointmentRecord });
+                    
                     return {
                         success: true,
                         appointment_id: appointmentRecord.id,
                         scheduled_time: appointmentRecord.time,
-                        message: `Appointment successfully scheduled at promenades mall at ${appointmentRecord.time}`
+                        message: `Appointment successfully scheduled at ${appointmentRecord.location} at ${new Date(appointmentRecord.time).toLocaleString()}`
                     };
 
-
                 } catch (error) {
-                    logger.error('Error scheduling appointment:', error);
+                    logger.error('Error scheduling appointment:', { 
+                        error: error.message,
+                        stack: error.stack,
+                        toolInput 
+                    });
                     return {
                         success: false,
-                        error: "Failed to schedule appointment"
+                        error: `Failed to schedule appointment: ${error.message}`
                     };
                 }
 

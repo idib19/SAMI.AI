@@ -14,7 +14,7 @@ class MessageService {
     async saveMessage(messageData) {
         try {
             const standardizedPhone = standardizePhoneNumber(messageData.phoneNumber);
-            logger.info('Attempting to save message for:', standardizedPhone);
+
 
             const message = new Message({
                 ...messageData,
@@ -22,7 +22,7 @@ class MessageService {
             });
 
             await message.save();
-            logger.info(`Message saved successfully with ID: ${message.content}`);
+
             return message;
         } catch (error) {
             logger.error('Error saving message:', error);
@@ -74,7 +74,7 @@ class MessageService {
                     }
                 }
             );
-            logger.info(`Updated ${result.modifiedCount} messages for ${phoneNumber}`);
+
             return result;
         } catch (error) {
             logger.error('Error updating customer info:', error);

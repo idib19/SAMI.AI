@@ -16,14 +16,12 @@ router.post('/trigger-message', async (req, res) => {
         const { phoneNumber, customerInfo } = req.body;
         const standardizedPhone = standardizePhoneNumber(phoneNumber);
         
-        logger.info('📤 Triggering outbound message:', {
-            to: standardizedPhone
-        });
+ 
 
         // Generate AI message based on customer information
         const outboundMessage = await AIService.generateFirstContactMessage(customerInfo);
 
-        logger.info('📤 Outbound message generated:', outboundMessage);
+    
 
         // Send message via Twilio or log if not in production
         const messageResponse = await smsService.sendMessage(
@@ -64,10 +62,7 @@ router.post('/webhook', async (req, res) => {
         const { Body: messageContent, From: phoneNumber } = req.body;
         const standardizedPhone = standardizePhoneNumber(phoneNumber);
         
-        logger.info('📩 Incoming message:', {
-            from: standardizedPhone,
-            content: messageContent
-        });
+
 
         // Save incoming message
         await messageService.saveMessage({
