@@ -21,7 +21,7 @@ const tools = [
                 },
                 "preferred_time": {
                     "type": "string",
-                    "description": "Customer's preferred appointment time (ISO 8601 format) knowing that the current time is " + new Date().toISOString()
+                    "description": "Customer's preferred appointment time in (ISO 8601 format) knowing that the current time is " + new Date().toISOString()
                 },
                 "store_location": {
                     "type": "string",

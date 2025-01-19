@@ -2,6 +2,13 @@ const logger = require('../../../utils/logger');
 const { createAppointment } = require('../../../services/backend-slri/client');
 
 class ToolHandler {
+    constructor() {
+        // Bind methods to preserve 'this' context
+        this.handleResponse = this.handleResponse.bind(this);
+        this.handleToolUse = this.handleToolUse.bind(this);
+        this.processToolCall = this.processToolCall.bind(this);
+    }
+
     async handleResponse(response, messages) {
         if (response.stop_reason === "tool_use") {
             return await this.handleToolUse(response, messages);
@@ -9,24 +16,45 @@ class ToolHandler {
         return { content: response.content[0]?.text };
     }
 
-    async handleToolUse(response, messages) {
-        const toolUse = response.content.find(block => block.type === "tool_use");
-        if (toolUse) {
-            // 1- call the tool
-            const toolResult = await this.processToolCall(toolUse.name, toolUse.input);
-            // add the tool result to the messages
-            messages.push({
-                role: "assistant",
-                content: `Tool ${toolUse.name} was called with result: ${JSON.stringify(toolResult)}`
-            });
-
-            return {
-                content: toolResult.message || "Tool execution completed",
-                toolResult: toolResult
-            };
+    async handleToolUse(response, messages, client) {
+        // While loop to handle repeated requests
+        while (response.stop_reason === 'tool_use') {
+          // 1) Locate the tool usage block
+          const toolUse = response.content.find(block => block.type === "tool_use");
+          if (!toolUse) break;
+    
+          // 2) Actually call the tool
+          const toolResult = await this.processToolCall(toolUse.name, toolUse.input);
+    
+          // 3) Add the tool result into the conversation
+          messages.push({
+            role: "user",
+            content: [
+              {
+                type: "tool_result",
+                tool_use_id: toolUse.id,
+                content: JSON.stringify(toolResult)
+              }
+            ]
+          });
+    
+          // 4) Ask Claude again
+          response = await client.messages.create({
+            model: 'claude-3-sonnet-20240229',
+            max_tokens: 200,
+            tools: this.tools,
+            messages: messages
+          });
         }
-        return { content: "No tool use found in response" };
-    }
+    
+        // Return final
+        return {
+          content: response.content[0]?.text,
+          messages,
+          response
+        };
+      }
+    
 
     // this is what the ai will use to call the tools
     async processToolCall(toolName, toolInput) {
