@@ -39,7 +39,7 @@ class AIService {
 
             const response = await this.client.messages.create({
                 model: 'claude-3-sonnet-20240229',
-                max_tokens: 200,
+                max_tokens: 201,
                 tools: this.tools,
                 messages: messages
             });
