@@ -14,6 +14,7 @@ class AIService {
         this.smsService = SMSServiceFactory.getService();
     }
 
+    // this is essentialy to trigger a conversation with a customer
     async generateFirstContactMessage(customerInfo) {
         try {
             const messagePrompt = buildFirstContactPrompt(customerInfo);
@@ -30,6 +31,9 @@ class AIService {
         }
     }
 
+
+    // this is the main function to generate a response to a customer
+    // it takes the message content, the customer info and some instructions
     async generateResponse(messageContent, customerInfo, instructions) {
         try {
             const messages = [{
@@ -43,6 +47,8 @@ class AIService {
                 tools: this.tools,
                 messages: messages
             });
+
+            logger.info('Reponse de l\'IA :', response);
 
             if (response.stop_reason === "tool_use") {
                 return await toolHandler.handleToolUse(response, messages);

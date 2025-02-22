@@ -30,6 +30,7 @@ class MessageService {
         }
     }
     // Get the conversation history for a given phone number
+    // limit is the number of messages to return max 100
     async getConversationHistory(phoneNumber, limit = 100) {
         try {
             const standardizedPhone = standardizePhoneNumber(phoneNumber);
@@ -54,7 +55,8 @@ class MessageService {
 
     // get customer name , email , phone model , issue description from the database 
     async getCustomerInfo(phoneNumber) {
-        const customerInfo = await Message.findOne({ phoneNumber })
+        const standardizedPhone = standardizePhoneNumber(phoneNumber);
+        const customerInfo = await Message.findOne({ phoneNumber: standardizedPhone })
             .select('customerName phoneModel issueDescription');
         return customerInfo;
     }
@@ -63,8 +65,9 @@ class MessageService {
     // Update customer info in the database
     async updateCustomerInfo(phoneNumber, customerInfo) {
         try {
+            const standardizedPhone = standardizePhoneNumber(phoneNumber);
             const result = await Message.updateMany(
-                { phoneNumber },
+                { phoneNumber: standardizedPhone },
                 {
                     $set: {
                         customerName: customerInfo.name,

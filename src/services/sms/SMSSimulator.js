@@ -68,6 +68,7 @@ class SMSSimulator {
     }
 
     async getCustomerInfo() {
+        
         const info = {};
         
         return new Promise((resolve) => {

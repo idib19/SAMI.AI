@@ -59,6 +59,7 @@ router.post('/trigger-message', async (req, res) => {
 });
 
 // SMS webhook endpoint for handling all incoming messages
+// And answer them automatically through the AI
 router.post('/webhook', async (req, res) => {
     try {
         const { Body: messageContent, From: phoneNumber } = req.body;
@@ -90,8 +91,8 @@ router.post('/webhook', async (req, res) => {
 
         // Validate AI response before attempting to save
         if (!aiResponse || !aiResponse.content) {
-            logger.error('Invalid AI response received:', aiResponse);
-            throw new Error('Invalid AI response format');
+            logger.error('Error generating AI response:', aiResponse);
+            throw new Error('Error : POST /webhook');
         }
 
         // Save outbound message
@@ -115,7 +116,48 @@ router.post('/webhook', async (req, res) => {
         });
 
     } catch (error) {
-        logger.error('🔴 Error in /webhook:', error);
+        logger.error('🔴 Error in /webhook: ', error);
+        return res.status(500).json({ 
+            error: 'Internal server error',
+            details: error.message 
+        });
+    }
+});
+
+// Demonstration endpoint form the landing page 
+router.post('/demo', async (req, res) => {
+    try {
+        const { phoneNumber} = req.body;
+        const standardizedPhone = standardizePhoneNumber(phoneNumber);
+        
+        // Generate a test message for the demo no need for ai generated text
+        const message = "Hello, this is a test message for the demo";
+
+        // Send message via Twilio or log if not in production
+        const messageResponse = await smsService.sendMessage(
+            standardizedPhone,
+            message
+        );
+
+        // handle error if message is not sent and retry twice before giving up
+        if (!messageResponse) {
+            for (let i = 0; i < 2; i++) {
+                messageResponse = await smsService.sendMessage(standardizedPhone, message);
+                if (messageResponse) {
+                    break;
+                }
+            }
+            throw new Error('Error sending message');
+        }
+
+        res.json({
+            status: 'success',
+            messageSid: messageResponse.sid,
+            content: message,
+            to: standardizedPhone
+        });
+    } catch (error) {
+        logger.error('🔴 Error in /demo: ', error);
         return res.status(500).json({ 
             error: 'Internal server error',
             details: error.message 

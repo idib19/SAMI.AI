@@ -3,6 +3,7 @@ const ConsoleSMSService = require('./ConsoleSMSService');
 const config = require('../../config/environment');
 
 // Factory class to create the appropriate SMS service based on the environment
+// twillio for production, console for development
 class SMSServiceFactory {
     static getService() {
         if (config.environment === 'production') {
